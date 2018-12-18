@@ -40,6 +40,7 @@ type Computer struct {
 }
 
 func (computer Computer) Working(usb Usb) {
+	fmt.Println("**", usb, "**")
 	usb.Start()
 	if phone, ok := usb.(Phone); ok {
 		phone.Call()
@@ -55,8 +56,7 @@ func main() {
 
 	var computer Computer
 	for _, v := range usbArr {
-		fmt.Println(v)
+		//fmt.Println(v)
 		computer.Working(v)
-		fmt.Println("--")
 	}
 }
