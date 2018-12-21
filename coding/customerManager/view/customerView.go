@@ -1,10 +1,15 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"go-code/coding/customerManager/service"
+	"go-code/coding/customerManager/model"
+)
 
 type customerView struct {
 	key  string
 	loop bool
+	customerService *service.CustomerService
 }
 
 func (this *customerView) mainMenu() {
@@ -20,13 +25,13 @@ func (this *customerView) mainMenu() {
 		fmt.Scanln(&this.key)
 		switch this.key {
 			case "1":
-				fmt.Println("添 加 客 户")
+				this.add()
 			case "2":
 				fmt.Println("修 改 客 户")
 			case "3":
 				fmt.Println("删 除 客 户")
 			case "4":
-				fmt.Println("客 户 列 表")
+				this.list()
 			case "5":
 				this.loop = false
 			default:
@@ -41,11 +46,42 @@ func (this *customerView) mainMenu() {
 	fmt.Println("Your had got out...")
 }
 
+func (this *customerView) list() {
+	customers := this.customerService.List()
+	fmt.Println("---------------------------客户列表---------------------------")
+	fmt.Println("编号\t 姓名\t 性别\t 年龄\t 电话\t 邮箱")
+	for i := 0; i < len(customers); i++ {
+		fmt.Println(customers[i].GetInfo())
+	}
+	fmt.Printf("\n-------------------------客户列表完成-------------------------\n\n")
+}
+
+func (this *customerView) add() {
+	fmt.Println("---------------------添加客户---------------------")
+	fmt.Println("姓名:")
+	name := ""
+	fmt.Scanln(&name)
+	fmt.Println("性别:")
+	gender := ""
+	fmt.Scanln(&gender)
+	fmt.Println("年龄:")
+	age := 0
+	fmt.Scanln(&age)
+	fmt.Println("电话:")
+	phone := ""
+	fmt.Scanln(&phone)
+	fmt.Println("电邮:")
+	email := ""
+	fmt.Scanln(&email)
+	customer := model.NewCustomer(this.customerService.CustomerId + 1, name, gender, age, phone, email)
+	this.customerService.Add(customer)
+}
+
 func main() {
 	customerView := customerView{
 		key: "",
 		loop: true,
 	}
-
+	customerView.customerService = service.NewCustomerService()
 	customerView.mainMenu()
 }
