@@ -29,7 +29,7 @@ func (this *customerView) mainMenu() {
 			case "2":
 				fmt.Println("修 改 客 户")
 			case "3":
-				fmt.Println("删 除 客 户")
+				this.delete()
 			case "4":
 				this.list()
 			case "5":
@@ -75,6 +75,26 @@ func (this *customerView) add() {
 	fmt.Scanln(&email)
 	customer := model.NewCustomer(this.customerService.CustomerId + 1, name, gender, age, phone, email)
 	this.customerService.Add(customer)
+}
+
+func (this *customerView) delete() {
+	fmt.Println("delete id?")
+	id := -1
+	fmt.Scanln(&id)
+
+	if id == -1 {
+		return
+	}
+
+	choice := ""
+	fmt.Scanln(&choice)
+	if choice == "Y" || choice == "y" {
+		if (this.customerService.Delete(id)) {
+			fmt.Println("success")
+		} else {
+			fmt.Println("faild")
+		}
+	}
 }
 
 func main() {
