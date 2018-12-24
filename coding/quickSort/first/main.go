@@ -4,10 +4,14 @@ import "fmt"
 
 func main() {
 	var list = []int{7, 2, 29, 18, 6, 1, 8, 19, 10}
-	quickSort(list)
+	ret := quickSort(list)
+	fmt.Println(ret)
 }
 
-func quickSort(list []int) {
+func quickSort(list []int) []int {
+	if len(list) < 2 {
+		return list
+	}
 
 	mid := list[0]
 	var (
@@ -15,15 +19,24 @@ func quickSort(list []int) {
 		rightArr []int
 	)
 
-	fmt.Println(mid)
-
-	for i := 0; i <= len(list); i++ {
+	for i := 1; i < len(list); i++ {
 		if list[i] > mid {
-			rightArr[] = list[i]
+			rightArr = append(rightArr, list[i])
 		} else {
-			
+			leftArr = append(leftArr, list[i])
 		}
 	}
+
+	fmt.Println(leftArr)
+	fmt.Println(rightArr)
+
+	leftArr = quickSort(leftArr)
+	rightArr = quickSort(rightArr)
+
+	leftArr = append(leftArr, mid);
+	leftArr = append(leftArr, rightArr...)
+
+	return leftArr
 }
 
 
