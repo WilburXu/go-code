@@ -33,7 +33,7 @@ func quickSort(list []int) []int {
 	leftArr = quickSort(leftArr)
 	rightArr = quickSort(rightArr)
 
-	leftArr = append(leftArr, mid);
+	leftArr = append(leftArr, mid)
 	leftArr = append(leftArr, rightArr...)
 
 	return leftArr
