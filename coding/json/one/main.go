@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"wkadmin/json"
+	"encoding/json"
 )
 
 type Monster struct {
@@ -22,7 +22,7 @@ func structFunc() {
 		Age : 25,
 	}
 
-	data, err := json.Marshal(&monster)
+	data, err := json.Marshal((&monster))
 	if err != nil {
 		fmt.Println(err)
 	}
