@@ -5,7 +5,7 @@ var testData = GenerateData()
 
 // generate billion slice data
 func GenerateData() []int {
-	data := make([]int, 1000000000)
+	data := make([]int, 100000000)
 	for key, _ := range data {
 		data[key] = key % 128
 	}
@@ -44,4 +44,14 @@ func CaseSumThree(result *int) {
 		tmp += data[i]
 	}
 	*result = tmp
+}
+
+func CaseSumFour() {
+	data := GenerateData()
+	dataLen := GetDataLen()
+	var tmp  = new(int)
+	for i:= 0; i < dataLen; i++ {
+		*tmp += data[i]
+	}
+
 }

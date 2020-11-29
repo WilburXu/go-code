@@ -23,3 +23,9 @@ func BenchmarkCaseSumThree(b *testing.B) {
 	CaseSumThree(&sum)
 	b.StopTimer()
 }
+
+func BenchmarkCaseSumFour(b *testing.B) {
+	b.ResetTimer()
+	CaseSumFour()
+	b.StopTimer()
+}
