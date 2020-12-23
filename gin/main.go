@@ -4,12 +4,9 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"encoding/hex"
-	"encoding/json"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"log"
 	"math/rand"
-	"net/http"
 	"time"
 )
 
@@ -18,47 +15,57 @@ var (
 )
 
 func main() {
-	// Engin
 	router := gin.Default()
-	//router := gin.New()
-
-	router.POST("/hello", func(c *gin.Context) {
-		log.Println(">>>> hello gin start <<<<")
-
-		body, _ := c.GetRawData()
-		log.Printf("--11 %v", string(body))
-		log.Printf("--12 %v", c.Request.Header.Get("X-Xc-Proto-Req"))
-
-		decodeBody, _ := AESGCMDecode(c.Request.Header.Get("X-Xc-Proto-Req"), body)
-		log.Printf("--22 %v", string(decodeBody))
-		if len(decodeBody) > 0 {
-
-		}
-
-		data := map[string]interface{}{
-			"token": "c162e6bb9435208bc87d18a9b599e9338bfd93070cc6e14a04af8486d6906923",
-			"h_m": 10,
-		}
-		dataJson, _ :=json.Marshal(data)
-		log.Printf("--33 %v", string(dataJson))
-
-		res, decodeKey, _ := AESGCMEncode(dataJson)
-		log.Printf("--44 %x", res)
-		log.Printf("--45 %s", decodeKey)
-
-		c.Writer.Header().Set("X-Xc-Proto-Req", decodeKey)
-
-		log.Printf("--50 %x", res)
-
-		//c.Data(http.StatusOK, "application/json", res)
-		c.String(http.StatusOK, fmt.Sprintln(res))
+	router.GET("/hello", func(c *gin.Context) {
+		log.Println("hi")
 	})
 
-	// 指定地址和端口号
 	router.Run("localhost:9988")
 }
 
 
+
+
+//func main() {
+//	// Engin
+//	router := gin.Default()
+//	//router := gin.New()
+//
+//	router.POST("/hello", func(c *gin.Context) {
+//		log.Println(">>>> hello gin start <<<<")
+//
+//		body, _ := c.GetRawData()
+//		log.Printf("--11 %v", string(body))
+//		log.Printf("--12 %v", c.Request.Header.Get("X-Xc-Proto-Req"))
+//
+//		decodeBody, _ := AESGCMDecode(c.Request.Header.Get("X-Xc-Proto-Req"), body)
+//		log.Printf("--22 %v", string(decodeBody))
+//		if len(decodeBody) > 0 {
+//
+//		}
+//
+//		data := map[string]interface{}{
+//			"token": "c162e6bb9435208bc87d18a9b599e9338bfd93070cc6e14a04af8486d6906923",
+//			"h_m": 10,
+//		}
+//		dataJson, _ :=json.Marshal(data)
+//		log.Printf("--33 %v", string(dataJson))
+//
+//		res, decodeKey, _ := AESGCMEncode(dataJson)
+//		log.Printf("--44 %x", res)
+//		log.Printf("--45 %s", decodeKey)
+//
+//		c.Writer.Header().Set("X-Xc-Proto-Req", decodeKey)
+//
+//		log.Printf("--50 %x", res)
+//
+//		//c.Data(http.StatusOK, "application/json", res)
+//		c.String(http.StatusOK, fmt.Sprintln(res))
+//	})
+//
+//	// 指定地址和端口号
+//	router.Run("localhost:9988")
+//}
 
 func AESGCMDecode(encodeKey string, body []byte) (decodeBody []byte, err error) {
 	key, _ := hex.DecodeString(encodeKey)
