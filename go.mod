@@ -11,6 +11,7 @@ replace (
 
 require (
 	github.com/ClickHouse/clickhouse-go v1.4.3
+	github.com/Shopify/sarama v1.19.0
 	github.com/antchfx/xpath v1.1.10 // indirect
 	github.com/coreos/bbolt v1.3.4 // indirect
 	github.com/coreos/etcd v3.3.25+incompatible
@@ -19,6 +20,7 @@ require (
 	github.com/go-playground/locales v0.13.0 // indirect
 	github.com/go-playground/universal-translator v0.17.0 // indirect
 	github.com/gobwas/glob v0.2.3 // indirect
+	github.com/hashicorp/consul/api v1.3.0
 	github.com/jinzhu/gorm v1.9.16
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/leodido/go-urn v1.2.0 // indirect
