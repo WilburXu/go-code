@@ -11,6 +11,7 @@ replace (
 
 require (
 	github.com/ClickHouse/clickhouse-go v1.4.3
+	github.com/Shopify/sarama v1.27.2
 	github.com/antchfx/xpath v1.1.10 // indirect
 	github.com/coreos/bbolt v1.3.4 // indirect
 	github.com/coreos/etcd v3.3.25+incompatible
@@ -30,7 +31,6 @@ require (
 	//go.etcd.io/etcd v0.5.0-alpha.5.0.20200306183522-221f0cc107cb
 	go.etcd.io/etcd v3.3.25+incompatible // indirect
 	go.uber.org/zap v1.16.0 // indirect
-	golang.org/x/net v0.0.0-20200822124328-c89045814202 // indirect
 	google.golang.org/grpc v1.33.2 // indirect
 	google.golang.org/grpc/examples v0.0.0-20201119211538-40076094f63b // indirect
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
