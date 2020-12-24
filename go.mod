@@ -11,7 +11,7 @@ replace (
 
 require (
 	github.com/ClickHouse/clickhouse-go v1.4.3
-	github.com/Shopify/sarama v1.27.2
+	github.com/Shopify/sarama v1.19.0
 	github.com/antchfx/xpath v1.1.10 // indirect
 	github.com/coreos/bbolt v1.3.4 // indirect
 	github.com/coreos/etcd v3.3.25+incompatible
