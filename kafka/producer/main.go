@@ -23,7 +23,7 @@ func NewClient() (*Client, error) {
 	config.Producer.Return.Errors = true
 	config.Producer.Return.Successes = true
 	//config.Producer.Partitioner = sarama.NewRandomPartitioner
-	//config.Producer.RequiredAcks = sarama.NoResponse
+	config.Producer.RequiredAcks = sarama.NoResponse
 	config.Version = sarama.V2_0_0_0
 
 	c.AsyncProducer, err = sarama.NewAsyncProducer([]string{"127.0.0.1:9092"}, config)

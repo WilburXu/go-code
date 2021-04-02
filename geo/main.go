@@ -22,7 +22,7 @@ func Initial(dbFile string) error {
 
 
 func main() {
-	Initial("geo/GeoLite2-Country.mmdb")
+	Initial("geo/GeoLite2-Region.mmdb")
 
 	netIP := net.ParseIP("156.249.25.195")
 	record, err := defaultGeoDB.Country(netIP)

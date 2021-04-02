@@ -1,27 +1,30 @@
 package main
 
 import (
-	"fmt"
-	"time"
+	"github.com/gorilla/websocket"
+	"log"
+	"net/http"
+	"net/url"
 )
 
 func main() {
+	log.Println("hello ....")
+	var header http.Header
+	u, _ := url.Parse(`wss://gw.hilivetech.com/ws-game`)
+	//u, _ := url.Parse(`ws://127.0.0.1:9633/ws`)
+	v := u.Query()
+	v.Set("token", "147e91f89fee942513a04fd46de4f223909c02688be8b83d85506d9ba13b41a1")
+	v.Set("h_m", "10011")
+	v.Set("h_did", "5ff742182b476b60")
+	v.Set("h_did", "5ff742182b476b60")
+	v.Set("session_id", "bjl-5ff742182b476b60")
 
-	tt, _ := time.Parse("2006-01-02", "2018-07-11")
-	fmt.Println(tt.Unix())
-
-	//var header http.Header
-	//u, _ := url.Parse(`wss://test-gw.nblive.io/ws`)
-	////u, _ := url.Parse(`ws://127.0.0.1:9633/ws`)
-	//v := u.Query()
-	//v.Set("token", "2b537a3ab24ce1883dbac9d7f518ca041cc6ee9264f10873c9b342ea711c4577")
-	//v.Set("h_m", "11")
-	//v.Set("h_did", "8035E49B-80B8-434A-A1CF-E065B331713B")
-	//u.RawQuery = v.Encode()
-	//conn, _, e := websocket.DefaultDialer.Dial(u.String(), header)
-	//log.Println(u.String())
-	//if e != nil {
-	//	log.Panicln(e)
-	//}
-	//log.Println("conn:", conn)
+	u.RawQuery = v.Encode()
+	conn, _, e := websocket.DefaultDialer.Dial(u.String(), header)
+	log.Println(u.String())
+	if e != nil {
+		log.Panicln(e)
+	}
+	log.Println("conn:", conn)
+	log.Println(conn.ReadMessage())
 }

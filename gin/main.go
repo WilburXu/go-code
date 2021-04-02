@@ -1,127 +1,355 @@
 package main
 
 import (
-	"crypto/aes"
-	"crypto/cipher"
-	"encoding/hex"
-	"github.com/gin-gonic/gin"
+	"bufio"
+	"fmt"
+	"io"
+	"io/ioutil"
 	"log"
-	"math/rand"
-	"time"
+	"math"
+	"net/url"
+	"os"
+	"path"
+	"sort"
+	"strings"
 )
 
 var (
 	nonce = "9I0fMA(GC#qG"
 )
 
+type LogSt struct {
+	RequestId string
+	RespBody  string
+	Path      string
+}
+
+type LogListSt []LogSt
+
+const soh = string(1)
+
 func main() {
-	router := gin.Default()
-	router.GET("/hello", func(c *gin.Context) {
-		log.Println("hi")
-	})
+	//ReadTestFileContentOfLine("./log/cleaning.2.log")
+	//ReadTestFileSort("./log/test/split/")
 
-	router.Run("localhost:9988")
+	//ReadReleaseFileContentOfLine("./log/team.proxy.access.1617307201.log")
+	//ReadReleaseFileContentOfLine("./log/team.proxy.access.1617314401.log")
+	//ReadReleaseFileContentOfLine("./log/team.proxy.access.1617321601.log")
+	//ReadReleaseFileContentOfLine("./log/team.proxy.access.1617328801.log")
+	//ReadReleaseFileSort("./log/release/split/")
 }
 
 
+func ReadReleaseFileSort(dirPath string) {
+	files, _ := ioutil.ReadDir(dirPath)
+	for _, file := range files {
+		logList := make(LogListSt, 0)
 
+		if file.IsDir() {
+			continue
+		}
 
-//func main() {
-//	// Engin
-//	router := gin.Default()
-//	//router := gin.New()
-//
-//	router.POST("/hello", func(c *gin.Context) {
-//		log.Println(">>>> hello gin start <<<<")
-//
-//		body, _ := c.GetRawData()
-//		log.Printf("--11 %v", string(body))
-//		log.Printf("--12 %v", c.Request.Header.Get("X-Xc-Proto-Req"))
-//
-//		decodeBody, _ := AESGCMDecode(c.Request.Header.Get("X-Xc-Proto-Req"), body)
-//		log.Printf("--22 %v", string(decodeBody))
-//		if len(decodeBody) > 0 {
-//
-//		}
-//
-//		data := map[string]interface{}{
-//			"token": "c162e6bb9435208bc87d18a9b599e9338bfd93070cc6e14a04af8486d6906923",
-//			"h_m": 10,
-//		}
-//		dataJson, _ :=json.Marshal(data)
-//		log.Printf("--33 %v", string(dataJson))
-//
-//		res, decodeKey, _ := AESGCMEncode(dataJson)
-//		log.Printf("--44 %x", res)
-//		log.Printf("--45 %s", decodeKey)
-//
-//		c.Writer.Header().Set("X-Xc-Proto-Req", decodeKey)
-//
-//		log.Printf("--50 %x", res)
-//
-//		//c.Data(http.StatusOK, "application/json", res)
-//		c.String(http.StatusOK, fmt.Sprintln(res))
-//	})
-//
-//	// 指定地址和端口号
-//	router.Run("localhost:9988")
-//}
+		if fileExt := path.Ext(file.Name()); fileExt != ".txt" {
+			continue
+		}
 
-func AESGCMDecode(encodeKey string, body []byte) (decodeBody []byte, err error) {
-	key, _ := hex.DecodeString(encodeKey)
-	nonce := []byte(nonce)
-	block, err := aes.NewCipher(key)
-	if err != nil {
-		return
+		i := 0
+		log.Println(file.Name(), " begin")
+		splitFilePath := fmt.Sprintf("%s%s", dirPath, file.Name())
+		r, _ := os.Open(splitFilePath)
+		s := bufio.NewScanner(r)
+		for s.Scan() {
+			i++
+			log.Printf("%s:%d", file.Name(), i)
+			line := s.Text()
+			lineSlice := strings.Split(line, soh)
+			if len(lineSlice) < 3 {
+				continue
+			}
+
+			logData := LogSt{
+				RequestId: lineSlice[0],
+				RespBody:  lineSlice[1],
+				Path:      lineSlice[2],
+			}
+			logList = append(logList, logData)
+		}
+
+		sort.Sort(logList)
+
+		var (
+			sortFile *os.File
+			err      error
+		)
+
+		sortFilePath := fmt.Sprintf("./log/release/sort/%s", file.Name())
+		if checkFileIsExist(sortFilePath) { //如果文件存在
+			sortFile, err = os.OpenFile(sortFilePath, os.O_APPEND|os.O_WRONLY, 0666) //打开文件
+		} else {
+			sortFile, err = os.Create(sortFilePath) //创建文件
+		}
+		if err != nil {
+			log.Println(err)
+		}
+
+		for _, v := range logList {
+			sortStr := fmt.Sprintf("%s%s%s%s%s\n", v.RequestId, soh, v.RespBody, soh, v.Path)
+
+			// 创建新的 Writer 对象
+			w := bufio.NewWriter(sortFile)
+			_, err = w.WriteString(sortStr)
+			if err != nil {
+				log.Println(err)
+			}
+			_ = w.Flush()
+		}
 	}
-
-	aesgcm, err := cipher.NewGCMWithNonceSize(block, len(nonce))
-	if err != nil {
-		return
-	}
-
-	cipherText, _ := hex.DecodeString(string(body))
-	//cipherText := body
-	decodeBody, err = aesgcm.Open(nil, nonce, cipherText, nil)
-	if err != nil {
-		return
-	}
-
-	return decodeBody, nil
 }
 
-func AESGCMEncode(body []byte) (encodeBody []byte, decodeKey string, err error) {
-	decodeKey = GetRandomHexString(32)
-	key, _ := hex.DecodeString(decodeKey)
-	//key, _ := hex.DecodeString("04ab9d9b8b7f923472b5259448312dc5")
+// 读取测试k8s集群的access log
+// 按照 request_id 的第一个字符的ascii求余，写入新文件
+// 新文件按照 request_id 排序
+func ReadReleaseFileContentOfLine(filename string) {
+	splitFileObjs := make(map[int]*os.File, 0)
 
-	block, err := aes.NewCipher(key)
+	file, err := os.OpenFile(filename, os.O_RDWR, 0666)
 	if err != nil {
+		log.Println("Open file error!", err)
 		return
 	}
+	defer file.Close()
 
-	// Never use more than 2^32 random nonces with a given key because of the risk of a repeat.
-	//nonce := make([]byte, 12)
-	nonce := []byte(nonce)
-
-	aesgcm, err := cipher.NewGCMWithNonceSize(block, 12)
+	stat, err := file.Stat()
 	if err != nil {
-		return
+		panic(err)
 	}
 
-	plainText := body
-	encodeBody = aesgcm.Seal(nil, nonce, plainText, nil)
+	var size = stat.Size()
+	log.Println("file size=", size)
 
-	return
+	buf := bufio.NewReader(file)
+	i := 0
+	for {
+		i++
+		log.Println(i)
+		line, err := buf.ReadString('\n')
+		line = strings.TrimSpace(line)
+		if err != nil {
+			if err == io.EOF {
+				log.Println("File read ok!")
+				break
+			} else {
+				log.Println("Read file error!", err)
+				return
+			}
+		}
+		lineSlice := strings.Split(line, soh)
+		if len(lineSlice) < 4 {
+			log.Printf("i=%d lineSlice < 4 \n", i)
+			continue
+		}
+
+		u, err := url.Parse(lineSlice[3])
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+
+		requestId := strings.Trim(lineSlice[0], "\"")
+		respBody := strings.Trim(lineSlice[1], "\"")
+		urlPath := strings.Trim(u.Path, "/")
+
+		modNum := int(math.Mod(float64(requestId[0]), 10))
+		modFileName := fmt.Sprintf("./log/release/split/log_%d.txt", modNum)
+		var splitFile *os.File
+		if v, ok := splitFileObjs[modNum]; ok {
+			splitFile = v
+		} else {
+			if checkFileIsExist(modFileName) { //如果文件存在
+				splitFile, err = os.OpenFile(modFileName, os.O_APPEND|os.O_WRONLY, 0666) //打开文件
+			} else {
+				splitFile, err = os.Create(modFileName) //创建文件
+			}
+			if err != nil {
+				log.Println(err)
+			}
+
+			splitFileObjs[modNum] = splitFile
+		}
+
+		splitStr := fmt.Sprintf("%s%s%s%s%s\n", requestId, soh, respBody, soh, urlPath)
+		w := bufio.NewWriter(splitFile) //创建新的 Writer 对象
+		_, err = w.WriteString(splitStr)
+		if err != nil {
+			log.Println(err)
+		}
+		_ = w.Flush()
+	}
 }
 
-func GetRandomHexString(lens int) string {
-	str := "0123456789abcde"
-	bytes := []byte(str)
-	result := []byte{}
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-	for i := 0; i < lens; i++ {
-		result = append(result, bytes[r.Intn(len(bytes))])
+func checkFileIsExist(filename string) bool {
+	if _, err := os.Stat(filename); os.IsNotExist(err) {
+		return false
 	}
-	return string(result)
+	return true
+}
+
+// 获取此 slice 的长度
+func (p LogListSt) Len() int { return len(p) }
+
+// 根据元素的requestId降序排序 （此处按照自己的业务逻辑写）
+func (p LogListSt) Less(i, j int) bool {
+	return p[i].RequestId > p[j].RequestId
+}
+
+// 交换数据
+func (p LogListSt) Swap(i, j int) { p[i], p[j] = p[j], p[i] }
+
+
+func ReadTestFileSort(dirPath string) {
+	files, _ := ioutil.ReadDir(dirPath)
+	for _, file := range files {
+		logList := make(LogListSt, 0)
+
+		if file.IsDir() {
+			continue
+		}
+
+		if fileExt := path.Ext(file.Name()); fileExt != ".txt" {
+			continue
+		}
+
+		i := 0
+		log.Println(file.Name(), " begin")
+		splitFilePath := fmt.Sprintf("%s%s", dirPath, file.Name())
+		r, _ := os.Open(splitFilePath)
+		s := bufio.NewScanner(r)
+		for s.Scan() {
+			i++
+			log.Printf("%s:%d", file.Name(), i)
+			line := s.Text()
+			lineSlice := strings.Split(line, soh)
+			if len(lineSlice) < 3 {
+				continue
+			}
+
+			logData := LogSt{
+				RequestId: lineSlice[0],
+				RespBody:  lineSlice[1],
+				Path:      lineSlice[2],
+			}
+			logList = append(logList, logData)
+		}
+
+		sort.Sort(logList)
+
+		var (
+			sortFile *os.File
+			err      error
+		)
+
+		sortFilePath := fmt.Sprintf("./log/test/sort/%s", file.Name())
+		if checkFileIsExist(sortFilePath) { //如果文件存在
+			sortFile, err = os.OpenFile(sortFilePath, os.O_APPEND|os.O_WRONLY, 0666) //打开文件
+		} else {
+			sortFile, err = os.Create(sortFilePath) //创建文件
+		}
+		if err != nil {
+			log.Println(err)
+		}
+
+		for _, v := range logList {
+			sortStr := fmt.Sprintf("%s%s%s%s%s\n", v.RequestId, soh, v.RespBody, soh, v.Path)
+
+			// 创建新的 Writer 对象
+			w := bufio.NewWriter(sortFile)
+			_, err = w.WriteString(sortStr)
+			if err != nil {
+				log.Println(err)
+			}
+			_ = w.Flush()
+		}
+	}
+}
+
+// 读取测试k8s集群的access log
+// 按照 request_id 的第一个字符的ascii求余，写入新文件
+// 新文件按照 request_id 排序
+func ReadTestFileContentOfLine(filename string) {
+	splitFileObjs := make(map[int]*os.File, 0)
+
+	file, err := os.OpenFile(filename, os.O_RDWR, 0666)
+	if err != nil {
+		log.Println("Open file error!", err)
+		return
+	}
+	defer file.Close()
+
+	stat, err := file.Stat()
+	if err != nil {
+		panic(err)
+	}
+
+	var size = stat.Size()
+	log.Println("file size=", size)
+
+	buf := bufio.NewReader(file)
+	i := 0
+	for {
+		i++
+		log.Println(i)
+		line, err := buf.ReadString('\n')
+		line = strings.TrimSpace(line)
+		if err != nil {
+			if err == io.EOF {
+				log.Println("File read ok!")
+				break
+			} else {
+				log.Println("Read file error!", err)
+				return
+			}
+		}
+		lineSlice := strings.Split(line, soh)
+		if len(lineSlice) < 4 {
+			log.Printf("i=%d lineSlice < 3 \n", i)
+			continue
+		}
+
+		urlSlice := strings.Split(lineSlice[3], " ")
+		u, err := url.Parse(urlSlice[1])
+		if err != nil {
+			log.Println(err)
+			continue
+		}
+
+		requestId := strings.Trim(lineSlice[0], "\"")
+		respBody := strings.Trim(lineSlice[1], "\"")
+		urlPath := strings.Trim(u.Path, "/")
+
+		modNum := int(math.Mod(float64(requestId[0]), 10))
+		modFileName := fmt.Sprintf("./log/test/split/log_%d.txt", modNum)
+		var splitFile *os.File
+		if v, ok := splitFileObjs[modNum]; ok {
+			splitFile = v
+		} else {
+			if checkFileIsExist(modFileName) { //如果文件存在
+				splitFile, err = os.OpenFile(modFileName, os.O_APPEND|os.O_WRONLY, 0666) //打开文件
+			} else {
+				splitFile, err = os.Create(modFileName) //创建文件
+			}
+			if err != nil {
+				log.Println(err)
+			}
+
+			splitFileObjs[modNum] = splitFile
+		}
+
+		splitStr := fmt.Sprintf("%s%s%s%s%s\n", requestId, soh, respBody, soh, urlPath)
+		w := bufio.NewWriter(splitFile) //创建新的 Writer 对象
+		_, err = w.WriteString(splitStr)
+		if err != nil {
+			log.Println(err)
+		}
+		_ = w.Flush()
+	}
 }
