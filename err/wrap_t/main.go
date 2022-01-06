@@ -2,17 +2,23 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/pkg/errors"
+
 )
 
 func main() {
-	err := test()
+	err := mid()
 	if err != nil {
-		fmt.Printf("%+v", errors.Cause(err))
-		fmt.Printf("tt \n %+v", err)
+		log.Printf("%+v", errors.Cause(err))
+		log.Printf("tt \n %+v", err)
 	}
+}
+
+func mid() (err error) {
+	return test()
 }
 
 func test() (err error){
