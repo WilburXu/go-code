@@ -2,27 +2,26 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"log"
 )
 
 var ErrNotFound = errors.New("aa")
 
 func main() {
-	t1 := errors.New("a")
-	t2 := errors.New("a")
+	tOne := errors.New("test")
+	tTwo := errors.New("test")
 
-	if t1 == t2 {
-		log.Println("ok")
+	if tOne == tTwo {
+		log.Println("Equal")
 	} else {
-		log.Println("no")
+		log.Println("notEqual")
 	}
 
 
-	err := fmt.Errorf("access denied: %w", ErrNotFound)
-	if errors.Is(err, ErrNotFound) {
-		log.Println("is ")
-	} else {
-		log.Println("no is")
-	}
+	//err := fmt.Errorf("access denied: %w", ErrNotFound)
+	//if errors.Is(err, ErrNotFound) {
+	//	log.Println("is ")
+	//} else {
+	//	log.Println("no is")
+	//}
 }
