@@ -1,12 +1,10 @@
 package main
 
 import (
-	"fmt"
+	"github.com/pkg/errors"
 	"log"
 	"os"
 	"time"
-
-	"github.com/pkg/errors"
 )
 
 var ErrNotFound = errors.New("aa")
@@ -14,11 +12,11 @@ var ErrNotFound = errors.New("aa")
 
 func main() {
 	err := mid()
-	err = errors.WithMessage(err, "33333")
+	err = errors.WithMessagef(err, "%d ", 3333)
 
 	if err != nil {
-		log.Printf("%+v", errors.Cause(err))
-		log.Printf("tt \n %+v", err)
+		log.Printf("cause is %+v \n", errors.Cause(err))
+		log.Printf("strace tt %+v \n", err)
 	}
 
 
@@ -35,16 +33,13 @@ func main() {
 }
 
 func mid() (err error) {
-
 	return test()
 }
 
 func test() (err error) {
-	fmt.Println("test")
-
 	_, err = os.Open("test.test")
 	if err != nil {
-		//err := fmt.Errorf("access denied: %w", ErrNotFound)
+		//err = fmt.Errorf("access denied: %w", ErrNotFound)
 		return errors.Wrap(err, "open error")
 	}
 
